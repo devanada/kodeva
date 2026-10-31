@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Cloudflare Pages project: the static site in ./out plus the Functions in ./functions (leads and orders)
+  "name": "kodeva",
+  "pages_build_output_dir": "./out",
+  "compatibility_date": "2025-08-15",
+  "vars": {
+    // not secret: identifies your Sanity project (sanity.io/manage). The Functions use it to create lead documents.
+    "SANITY_PROJECT_ID": "71tuhtb9",
+    "SANITY_DATASET": "production"
+  }
+  // Secrets are not stored here. Set them once with:
+  //   npx wrangler pages secret put SANITY_WRITE_TOKEN --project-name kodeva
+  //   npx wrangler pages secret put TURNSTILE_SECRET_KEY --project-name kodeva
+}

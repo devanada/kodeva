@@ -1,0 +1,12 @@
+# Secrets and variables for the Pages Functions when running `npm run preview` (copy to .dev.vars, never commit it).
+# In production set the secrets with: npx wrangler pages secret put <NAME> --project-name kodeva
+
+# Cloudflare Turnstile secret (published test secret, always passes)
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+
+# Sanity Editor token, used only to create `lead` documents (sanity.io/manage > API > Tokens)
+SANITY_WRITE_TOKEN=
+
+# Local-only overrides for testing against the mock instead of Sanity
+# SANITY_PROJECT_ID=mock
+# SANITY_API_HOST=http://localhost:4010
