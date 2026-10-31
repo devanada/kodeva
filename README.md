@@ -339,24 +339,26 @@ A direct-upload project cannot be connected to git later, and it has no deploy h
 
 ### Lighthouse (mobile, performance, landing page, deployed)
 
-![Lighthouse mobile report for https://kodeva.pages.dev](lighthouse/landing-mobile-deployed.png)
+![Lighthouse mobile report for https://kodeva.devanada.com](lighthouse/landing-mobile-custom-domain.png)
 
-Performance **100**: FCP 0.9 s, LCP 0.9 s, TBT 70 ms, CLS 0, Speed Index 0.9 s, run against `https://kodeva.pages.dev/` with
-Lighthouse 13 (mobile emulation, simulated throttling). The full report is in
-[`lighthouse/landing-mobile-deployed.report.html`](lighthouse/landing-mobile-deployed.report.html) (JSON next to it). The
-landing page currently has no hero image; a large CMS image would be the first thing to watch (the Sanity image loader
-requests a resized, modern-format version, and the hero image is marked `priority`).
+Run against the live, canonical address `https://kodeva.devanada.com/` with Lighthouse 13 (mobile emulation, simulated
+throttling). Four runs on the deployed build gave **97, 99, 100 and 99** (the screenshot is the last one: FCP 1.7 s, LCP 1.7 s,
+TBT 40 ms, CLS 0, Speed Index 2.7 s). The page transfers about 451 KB and makes 0 requests to Cloudflare's challenge servers.
+The full report is in
+[`lighthouse/landing-mobile-custom-domain.report.html`](lighthouse/landing-mobile-custom-domain.report.html) (JSON next to it).
+The landing page currently has no hero image; a large CMS image would be the first thing to watch (the Sanity image loader
+requests a resized, modern-format version, and the hero image is marked `priority`). LCP varies between about 1.0 and 2.1 s
+from run to run, which is the spread behind the 97 to 100.
 
-**The custom domain scored lower, and why.** The same build measured on `https://kodeva.devanada.com/` (three runs, before
-the change below) scored **90 to 91**, with FCP and LCP of 2.7 to 2.8 s, against 100 and 0.9 s on `pages.dev`. Comparing the
-requests showed the cause: on both hosts the landing page downloaded about **0.9 MB from Cloudflare Turnstile** (13
-requests, nearly two thirds of the page's transfer) for a form that sits far below the fold; the custom domain also loads
-Cloudflare's Web Analytics beacon (a zone setting, not part of this code), which was enough to push the simulated slow-phone
-timing over the edge. Both scores pass the 80 target, but with 80 percent of traffic on phones the captcha cost was real.
-The fix is the lazy-loaded captcha described under "Lead form": on a phone-sized headless Chrome the landing page now makes
-0 requests to Cloudflare's challenge servers at load and while the form is still thousands of pixels away, and loads it when
-the form comes into view. **The scores above predate that change**: they should be re-measured on the custom domain after it
-is deployed.
+**What changed, and why the first deploy scored lower on the custom domain.** The first build scored 100 on
+`https://kodeva.pages.dev/` (report in [`lighthouse/landing-mobile-deployed.report.html`](lighthouse/landing-mobile-deployed.report.html))
+but only **90 to 91** on the custom domain (three runs, LCP 2.7 to 2.8 s) for byte-identical pages. Comparing the requests
+showed the cause: on both hosts the landing page downloaded about **0.9 MB from Cloudflare Turnstile** (13 requests, nearly
+two thirds of a 1.4 MB page) for a form that sits far below the fold, and the custom domain also loads Cloudflare's Web
+Analytics beacon (a zone setting, not part of this code), which was enough to push the simulated slow-phone timing over the
+edge. Both passed the 80 target, but with 80 percent of traffic on phones the captcha cost was real. The fix is the
+lazy-loaded captcha described under "Lead form". After deploying it, the same address measures 97 to 100 with 451 KB
+transferred (down from about 1,404 KB).
 
 ### Verified
 

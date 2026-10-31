@@ -98,8 +98,10 @@ analytics beacon on the custom domain. Fixed by mounting the captcha only when t
 first browser test of the fix said it did not work (no request after scrolling), but the browser pane used for testing never
 fires `IntersectionObserver` callbacks at all, even for a probe at the top of the screen. Re-tested in a real rendering
 headless Chrome over the DevTools protocol, which showed 0 requests at load and while far away, and the script loading when
-the form came into view. The new unit tests cover the three cases. The score on the custom domain after the change still has
-to be measured after the deploy; the README says so instead of claiming it.
+the form came into view. The new unit tests cover the three cases. After the deploy I measured the custom domain again
+instead of assuming the fix worked: four runs gave 97, 99, 100 and 99, with 0 requests to the captcha servers and 451 KB
+transferred instead of about 1,404 KB. The deploy also took four to five minutes to appear, and a sitemap check made
+too early still showed the old double slashes, which looked like a failed fix until the new build went live.
 
 ## 4. The part where the AI helped most, and the edge cases I tested
 
