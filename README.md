@@ -165,7 +165,10 @@ Everything below is free. Do the steps in order; each command is meant to be run
 2. Cloudflare dashboard > Workers & Pages > Create > Pages > Connect to git.
 3. Build command `npm run build`, output directory `out`, root directory empty, and Node 24 (`.node-version`).
 4. Environment variables (production): `SANITY_PROJECT_ID`, `SANITY_DATASET`, `SANITY_READ_TOKEN`, `NEXT_PUBLIC_SITE_URL`,
-   `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `NEXT_PUBLIC_GTM_ID`. These are the build-time values; Pages encrypts the token.
+   `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `NEXT_PUBLIC_GTM_ID`. These are the build-time values; Pages encrypts the token. `NEXT_PUBLIC_*` values are inlined into the
+   pages while building, so adding or changing one only takes effect on the next build. `npm run build` runs
+   `scripts/check-build-env.mjs`, which on Cloudflare Pages stops the build and lists what is missing (a missing site key
+   would otherwise ship a lead form with no captcha, and a missing read token an empty blog). It does nothing locally.
 5. Settings > Variables and secrets: add the Function secrets `SANITY_WRITE_TOKEN` and `TURNSTILE_SECRET_KEY`. (`SANITY_PROJECT_ID`
    and `SANITY_DATASET` come from `wrangler.jsonc`.)
 6. Settings > Builds > **Deploy hooks**: create one for the production branch and copy its URL.

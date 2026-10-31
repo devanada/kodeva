@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 
 import { CaptchaFormField } from '@/components/form-field/captcha';
 import { InputFormField } from '@/components/form-field/input';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -17,6 +18,7 @@ import { LeadInput, LeadPayload, LeadSchema } from '@/utils/apis/v2/leads/types'
 import { getUtm } from '@/utils/tracking/utm';
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
+const captchaReady = TURNSTILE_SITE_KEY !== '';
 
 function LeadForm() {
   const turnstileRef = useRef<TurnstileInstance>(null);
@@ -78,14 +80,23 @@ function LeadForm() {
           autoComplete='off'
         />
       </div>
-      <CaptchaFormField
-        control={form.control}
-        name='turnstileToken'
-        id='lead-captcha'
-        siteKey={TURNSTILE_SITE_KEY}
-        ref={turnstileRef}
-      />
-      <Button type='submit' size='lg' disabled={form.formState.isSubmitting}>
+      {captchaReady ? (
+        <CaptchaFormField
+          control={form.control}
+          name='turnstileToken'
+          id='lead-captcha'
+          siteKey={TURNSTILE_SITE_KEY}
+          ref={turnstileRef}
+        />
+      ) : (
+        // the key is inlined at build time; without it no token can ever be produced, so say so instead of letting
+        // the visitor hit a confusing "complete the verification" error on a widget that is not there
+        <Alert variant='destructive'>
+          <AlertTitle>Formulir belum aktif</AlertTitle>
+          <AlertDescription>Verifikasi keamanan belum dikonfigurasi. Silakan coba lagi nanti.</AlertDescription>
+        </Alert>
+      )}
+      <Button type='submit' size='lg' disabled={form.formState.isSubmitting || !captchaReady}>
         {form.formState.isSubmitting && <Spinner />}
         Kirim
       </Button>
