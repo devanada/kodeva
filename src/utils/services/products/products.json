@@ -1,0 +1,192 @@
+[
+  {
+    "slug": "kodeva-kasir",
+    "name": "Kodeva Kasir",
+    "category": "kasir",
+    "tagline": "Aplikasi kasir untuk toko dan kafe",
+    "description": "Catat penjualan, kelola stok, dan cetak struk dari HP atau tablet. Cocok untuk satu outlet maupun banyak cabang.",
+    "plans": [
+      {
+        "id": "basic",
+        "name": "Basic",
+        "price": 99000
+      },
+      {
+        "id": "pro",
+        "name": "Pro",
+        "price": 199000
+      },
+      {
+        "id": "business",
+        "name": "Business",
+        "price": 349000
+      }
+    ],
+    "promo": {
+      "quota": 50,
+      "discountPercent": 30
+    },
+    "features": [
+      "Transaksi cepat dengan scan barcode",
+      "Cetak struk lewat printer bluetooth",
+      "Laporan penjualan harian otomatis"
+    ]
+  },
+  {
+    "slug": "kodeva-hr-payroll",
+    "name": "Kodeva HR & Payroll",
+    "category": "hr",
+    "tagline": "Penggajian dan data karyawan tanpa ribet",
+    "description": "Hitung gaji, PPh 21, dan BPJS otomatis, lengkap dengan slip gaji digital untuk setiap karyawan.",
+    "plans": [
+      {
+        "id": "basic",
+        "name": "Basic",
+        "price": 149000
+      },
+      {
+        "id": "pro",
+        "name": "Pro",
+        "price": 299000
+      },
+      {
+        "id": "business",
+        "name": "Business",
+        "price": 499000
+      }
+    ],
+    "promo": {
+      "quota": 30,
+      "discountPercent": 25
+    },
+    "features": [
+      "Hitung PPh 21 dan BPJS otomatis",
+      "Slip gaji digital untuk karyawan",
+      "Rekap cuti dan lembur"
+    ]
+  },
+  {
+    "slug": "kodeva-absensi",
+    "name": "Kodeva Absensi",
+    "category": "hr",
+    "tagline": "Absensi selfie dengan lokasi",
+    "description": "Karyawan absen dari HP dengan foto dan lokasi. Data langsung masuk ke perhitungan gaji.",
+    "plans": [
+      {
+        "id": "basic",
+        "name": "Basic",
+        "price": 49000
+      },
+      {
+        "id": "pro",
+        "name": "Pro",
+        "price": 99000
+      },
+      {
+        "id": "business",
+        "name": "Business",
+        "price": 179000
+      }
+    ],
+    "promo": {
+      "quota": 100,
+      "discountPercent": 20
+    },
+    "features": [
+      "Absen selfie dengan lokasi",
+      "Jadwal shift fleksibel",
+      "Terhubung langsung ke payroll"
+    ]
+  },
+  {
+    "slug": "kodeva-inventori",
+    "name": "Add-on Inventori",
+    "category": "addon",
+    "tagline": "Stok multi gudang dan peringatan stok tipis",
+    "description": "Tambahan untuk Kodeva Kasir: transfer stok antar outlet, stok opname, dan notifikasi stok menipis.",
+    "plans": [
+      {
+        "id": "basic",
+        "name": "Basic",
+        "price": 59000
+      },
+      {
+        "id": "pro",
+        "name": "Pro",
+        "price": 119000
+      },
+      {
+        "id": "business",
+        "name": "Business",
+        "price": 219000
+      }
+    ],
+    "features": [
+      "Transfer stok antar outlet",
+      "Stok opname lewat HP",
+      "Peringatan stok menipis"
+    ]
+  },
+  {
+    "slug": "kodeva-loyalty",
+    "name": "Add-on Loyalty",
+    "category": "addon",
+    "tagline": "Poin dan voucher untuk pelanggan setia",
+    "description": "Beri poin di setiap transaksi dan kirim voucher lewat WhatsApp agar pelanggan kembali berbelanja.",
+    "plans": [
+      {
+        "id": "basic",
+        "name": "Basic",
+        "price": 69000
+      },
+      {
+        "id": "pro",
+        "name": "Pro",
+        "price": 129000
+      },
+      {
+        "id": "business",
+        "name": "Business",
+        "price": 229000
+      }
+    ],
+    "promo": {
+      "quota": 40,
+      "discountPercent": 15
+    },
+    "features": [
+      "Poin otomatis setiap transaksi",
+      "Voucher via WhatsApp",
+      "Tingkatan member"
+    ]
+  },
+  {
+    "slug": "kodeva-laporan",
+    "name": "Add-on Laporan Keuangan",
+    "category": "addon",
+    "tagline": "Laba rugi dan arus kas otomatis",
+    "description": "Ringkasan laba rugi, arus kas, dan pajak bulanan yang dihitung dari data kasir dan payroll Anda.",
+    "plans": [
+      {
+        "id": "basic",
+        "name": "Basic",
+        "price": 79000
+      },
+      {
+        "id": "pro",
+        "name": "Pro",
+        "price": 149000
+      },
+      {
+        "id": "business",
+        "name": "Business",
+        "price": 259000
+      }
+    ],
+    "features": [
+      "Laba rugi bulanan",
+      "Arus kas otomatis",
+      "Ringkasan pajak"
+    ]
+  }
+]
