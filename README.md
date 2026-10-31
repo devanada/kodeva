@@ -3,6 +3,19 @@
 Landing campaign, blog, and mini marketplace for the fictional Kodeva brand (technical skill test). Runs entirely on the
 Cloudflare **Free** plan plus Sanity's free plan.
 
+- **Live site:** https://kodeva.pages.dev
+- **CMS (Sanity Studio):** [ISI: link to your hosted Studio]. The demo editor account is in the submission email.
+- **AI usage log:** [AI_LOG.md](AI_LOG.md)
+
+## Working time
+
+[ISI: actual time spent, in hours, and roughly how it split between the landing/blog, the marketplace, the marketing
+requirements and the deployment. The brief asks for the real number, not the 6 to 8 hour estimate.]
+
+The work took more than one architecture: it started as Payload CMS on Cloudflare Workers and was rebuilt as a static site
+with Sanity when that proved impossible on the Workers Free plan (see "Why this architecture"). That detour is part of the
+time above.
+
 ## Stack
 
 - Next.js 16 (App Router) + TypeScript as a **static export**, served by Cloudflare Pages
@@ -23,8 +36,77 @@ it failed in production with `Worker exceeded CPU time limit` (error 1102). Inst
 - The only code that runs on a Worker is two tiny Functions (a zod parse, one Turnstile call, one write to Sanity), which
   fit in 10 ms because waiting on `fetch` is not CPU time.
 
-The Payload version is preserved outside the repo in `E:\WORK\kodeva-payload-backup` (git history does not have it
-because nothing was committed).
+### Why Sanity
+
+The brief allows any CMS. Sanity was chosen because it is hosted (no server of ours to run or pay for), gives non-technical
+editors a ready Studio with draft/publish, image upload and rich text, has a free plan large enough for this, and its
+content API is reachable from a build step. Payload, the first choice, is excellent but needs a Node runtime or a heavy
+Worker; Strapi, Directus and WordPress need a server and a database; a CMS built from scratch would spend the whole time
+budget on an admin UI. A git-based CMS (Decap) was the runner-up, but its editors need GitHub accounts.
+
+### Why a static site
+
+The marketing brief is mostly about speed and findability: 80 percent of traffic comes from phones on Instagram and TikTok,
+and articles and products must be easy to find on Google. Static HTML served from the CDN is the fastest and most
+crawlable option, and this content changes weekly, not per request. The price is that an edit appears after a rebuild
+(about 1 to 2 minutes), which the brief explicitly asks us to explain (see "Caching and revalidation").
+
+## Assumptions
+
+The brief left some things open. What I assumed:
+
+- **Where data lives.** Landing page, articles, testimonials, FAQs and leads are in Sanity. Products, plans and promo quotas
+  are a JSON file because the marketplace is frontend-only. The CMS references products by slug, and the Studio only
+  offers slugs that exist.
+- **"Berapa orang yang klik tombol beli dari landing page".** The landing page has no buy button, only a CTA to the
+  catalog. I count clicks on that CTA as `cta_click` (with the campaign), and the purchase funnel continues with
+  `view_item`, `add_to_cart` and `begin_checkout`.
+- **Prices.** IDR, per license per month. A promo discount applies to every plan of its product.
+- **Promo quota.** One shared pool per product (not per plan), taken from the catalog JSON. With no backend it cannot go
+  down when someone else buys, so "remaining quota" means the catalog quota minus what is in this visitor's cart.
+- **UTM.** Last-touch: a visit with UTM parameters replaces the stored ones, a visit without keeps them. Stored in
+  `localStorage` so it survives navigation and a closed tab, and is sent with the lead and the order.
+- **Lead form.** Either an email or a WhatsApp number is enough. Phone numbers are validated as Indonesian by default.
+- **Checkout.** "Pay" is a mock endpoint; a demo select chooses success or failure so a reviewer can see both.
+- **Language.** The UI is in Indonesian; the code and docs are in English.
+- **Preview of drafts.** Draft/publish is Sanity's: a draft is invisible on the site until published. A live preview of an
+  unpublished draft on the site itself is not built (it needs a server-rendered preview route).
+- **Dummy data.** Testimonials, articles, prices and product screenshots (gradient placeholders) are made up.
+
+## Expansion to Malaysia and Singapore (not built)
+
+The Head of Marketing said teams in Malaysia and Singapore will use the site from next year. Not implemented, but the
+design leaves room for it:
+
+- **Locales and routes.** `/id`, `/my`, `/sg` route prefixes with `hreflang` alternates in the metadata and the sitemap.
+  Next.js `generateStaticParams` already enumerates every page at build time, so each market just adds a segment.
+- **Content.** Sanity document-level translations (one document per language) with a `market` field, so each team edits
+  its own landing page and articles. Editor permissions per market need Sanity roles (a paid feature); on the free plan,
+  one dataset per market is the fallback.
+- **Prices and currency.** Replace the single `price` per plan with a price table per market (IDR, MYR, SGD), plus tax rules
+  (SST in Malaysia, GST in Singapore). `formatIdr` becomes a currency-aware formatter and the order payload carries the
+  currency.
+- **Tracking.** Add `market` and `currency` to every `dataLayer` event, which already carries campaign and product data.
+- **Operations.** A Turnstile widget and domain per market, and the lead documents get a `market` field so teams only see
+  their own leads.
+
+## Libraries and why
+
+| Library | Why |
+| --- | --- |
+| Next.js 16 + TypeScript (strict) | Static export, file-based routing, per-page metadata for SEO and share previews |
+| Sanity + `@sanity/client`, `@portabletext/react` | Hosted CMS with a ready Studio; the client reads at build time, Portable Text renders the rich text |
+| Cloudflare Pages + Pages Functions + Wrangler | Free static hosting with unlimited asset requests, and tiny Workers for the two endpoints |
+| Tailwind CSS v4 + shadcn/ui (radix-maia) | Accessible, unstyled-by-default primitives that I own in the repo, fast to compose |
+| react-hook-form + zod | One schema validates the form in the browser and again in the Function; wrappers in `components/form-field` keep fields consistent |
+| zustand (`persist`) | Small cart store that survives refresh without a provider tree; the quota logic stays in pure functions |
+| Cloudflare Turnstile | Free, privacy-friendly captcha that pairs with the honeypot and rate limit |
+| libphonenumber-js | Real phone number validation instead of a fragile regex |
+| Vitest + Testing Library | Fast unit tests for quota, pricing, validation and the form states |
+| `create-next-app` + shadcn init | Starting point only; the form-field wrappers and project conventions come from my own earlier project |
+
+I did not use TanStack Query or MSW: with static data and two POST endpoints there is nothing to cache or intercept, and
+the "mock API fails" case is covered by the checkout's network error state and the Function's 402 and 500 responses.
 
 ## Run locally
 
@@ -99,6 +181,32 @@ finishes. No manual deploy is needed.
   documents in Sanity, so marketing reads them in the Studio, with the UTM that brought them.
 - **SEO:** a static `sitemap.xml` (landing, products, articles), per-page metadata and canonical URLs, Open Graph tags,
   JSON-LD for articles and products.
+
+### Proof that the events fire
+
+Events go to `window.dataLayer` in GA4 format; no GA account is needed. To check them yourself, open the site from a
+campaign link, use it, then run this in the browser console:
+
+```js
+dataLayer.filter((e) => ['cta_click', 'view_item', 'add_to_cart', 'begin_checkout'].includes(e.event));
+```
+
+I did exactly that on the deployed site (https://kodeva.pages.dev/?utm_source=instagram&utm_medium=social&utm_campaign=akhir-tahun),
+clicking through with client-side navigation so the page was never reloaded: hero CTA, open Kodeva Kasir, switch plan four
+times, add 2 licenses of the Pro plan, open the cart, go to checkout. Result:
+
+| Step | Event | Count | Payload (shortened) |
+| --- | --- | --- | --- |
+| Click the hero CTA | `cta_click` | 1 | `cta_id: hero_catalog`, `cta_destination: /products`, campaign `instagram/social/akhir-tahun` |
+| Open the product page | `view_item` | 1 | `currency: IDR`, `value: 69300`, item `kodeva-kasir`, variant `basic`, price 69300 |
+| Switch plan Pro, Business, Basic, Pro | `view_item` | still 1 | no new event: re-renders do not resend it |
+| Add 2 licenses (Pro) | `add_to_cart` | 1 | `value: 278600`, item `kodeva-kasir`, variant `pro`, quantity 2, price 139300 |
+| Open checkout | `begin_checkout` | 1 | `value: 278600`, the same cart item |
+
+Every event also carries `campaign_source`, `campaign_medium` and `campaign_name` from the stored UTM. The guards that
+prevent duplicates: `view_item` and `begin_checkout` are sent from an effect guarded by a ref, and `add_to_cart` and
+`cta_click` from click handlers, never from render. Before each ecommerce event the previous `ecommerce` object is cleared
+(`{ ecommerce: null }`), as GA4 recommends.
 
 ## Marketplace
 
@@ -201,25 +309,74 @@ A direct-upload project cannot be connected to git later, and it has no deploy h
 
 ## Status
 
-Done: static export, Sanity-backed landing page and blog (list with pagination, article with Portable Text, SEO metadata,
-JSON-LD, related products), lead and order Functions, UTM capture, CTA and ecommerce tracking, marketplace (catalog, detail,
-cart, quota, checkout), Studio schemas, seed script, deploy pre-flight, 34 unit tests.
+### Done (mapped to the brief)
 
-Lighthouse (mobile, performance, landing page, static output served by `wrangler pages dev`, fallback-free mock CMS content,
-no images): **100**. FCP 1.3 s, LCP 1.3 s, TBT 30 ms, CLS 0. Reports are in `lighthouse/`. It is a localhost run: re-run it
-against the deployed URL, with a real hero image, for the submission screenshot.
+- **A. Landing + blog (CMS):** hero with CTA to the catalog, featured products, testimonials and FAQ, all editable in the
+  Sanity Studio; lead form with validation, honeypot, Turnstile and rate limit, stored as `lead` documents the marketing
+  team reads in the Studio; blog list with pagination and article pages with readable slugs, cover, rich text, category,
+  draft/publish and linked products; published changes appear after an automatic rebuild (see "Caching and revalidation").
+- **B. Marketplace:** catalog of 6 products with a category filter; product detail with plan picker, strikethrough promo
+  price and remaining quota; cart (add, change quantity, remove, subtotal, survives refresh); promo quota shared across
+  the plans of one product; checkout with validation and a success/failure simulation; loading, error, empty and
+  not-found states; cart button in the header on every page.
+- **C. Marketing:** Lighthouse mobile 100 on the deployed landing page; `view_item`, `add_to_cart`, `begin_checkout` and
+  CTA events in `dataLayer`; UTM kept across pages and sent with the lead and the order payload; sitemap, metadata, JSON-LD.
+- **Tests:** 36 unit tests (quota, pricing, cart sanitizing, server-side validation, lead schema, UTM, image loader, and the
+  lead form's two captcha states).
 
-Verified here (mock Sanity API, workerd via `wrangler pages dev`): the static build from CMS-shaped data (7 articles,
-page 2 of the blog, products, sitemap with 16 URLs, 404.html), every route returns the right status (unknown article,
-product and `/blog/page/3` are real 404s), the lead Function validates, applies the honeypot and writes a correctly shaped
-`lead` document, the order Function enforces the quota across plans and returns paid and declined, the seed script writes 13
-documents with correct references and is idempotent by construction (`createIfNotExists`), the Studio typechecks and builds,
-the pre-flight check fails and passes as designed, and the read token does not appear anywhere in `out/`.
+### Lighthouse (mobile, performance, landing page, deployed)
 
-Not verified (needs your accounts): a real Sanity project (GROQ queries against real data, the private dataset with the
-Viewer token, the Studio in the browser, the webhook), a real Cloudflare Pages deploy and its deploy hook, and the Functions'
-CPU time on the Free plan. The Functions are small (parse, one fetch, one write) and should be well under 10 ms, but the
-only way to confirm is `wrangler pages deployment tail` after a deploy. If `/api/v1/leads` ever answers with error 1102, the
-cheapest fix is to drop `libphonenumber-js` from that Function and validate the phone number with a simple regex.
+![Lighthouse mobile report for https://kodeva.pages.dev](lighthouse/landing-mobile-deployed.png)
 
-Not done: mobile layout review by eye, and the Functions' rate limit is per Worker instance only.
+Performance **100**: FCP 0.9 s, LCP 0.9 s, TBT 70 ms, CLS 0, Speed Index 0.9 s, run against `https://kodeva.pages.dev/` with
+Lighthouse 13 (mobile emulation, simulated throttling). The full report is in
+[`lighthouse/landing-mobile-deployed.report.html`](lighthouse/landing-mobile-deployed.report.html) (JSON next to it). The
+landing page currently has no hero image; a large CMS image would be the first thing to watch (the Sanity image loader
+requests a resized, modern-format version, and the hero image is marked `priority`).
+
+### Verified
+
+- **Automated:** the 36 tests, typecheck and lint, and a production build against a local mock of the Sanity API (7
+  articles, blog page 2, sitemap with 16 URLs, 404 page), and the same build with no CMS configured.
+- **On workerd (`wrangler pages dev`):** every route returns the right status; the lead Function validates, applies the
+  honeypot and writes a correctly shaped `lead` document; the order Function enforces the quota across plans and returns
+  paid and declined.
+- **On the deployed site:** landing page and articles come from the real Sanity project, an unknown product is a real 404,
+  the Turnstile site key is built in, Lighthouse as above, and the tracking events as in "Proof that the events fire".
+- **Mobile layout (375 px, deployed site):** no horizontal overflow on `/`, `/products`, a product page, `/cart` and `/blog`.
+
+### Not done, and known limitations
+
+- **Bonus items (none done):** CMS control of section order and visibility, catalog sorting/search/filters in the URL,
+  monthly/yearly durations and a plan comparison table, scheduled promos, vouchers (so no voucher tests), and a draft
+  preview on the site itself.
+- **Product "screenshots"** on the detail page are gradient placeholders, not real images.
+- **Tap targets:** primary buttons and the quantity steppers are 44 px, but a few secondary targets are smaller on a phone:
+  the "Lihat detail" links on the landing cards (about 20 px tall), the header logo (28 px), the product-name link in the
+  cart, and the form inputs (36 px). Measured, not yet fixed.
+- **Freshness:** an edit appears after a rebuild (about 1 to 2 minutes), not instantly.
+- **Rate limit:** the lead and order Functions limit requests per Worker instance only.
+- **Functions' CPU time** on the Free plan was not measured on Cloudflare; they are small (one parse, one or two `fetch`
+  calls) and the first version's limit problem came from the Payload admin, not from them. `wrangler pages deployment tail`
+  shows the real figure. If `/api/v1/leads` ever answers with error 1102, drop `libphonenumber-js` from that Function.
+- **Commit history:** the work went through several iterations (a Payload-on-Workers version first, then this one). The
+  commits were created at the end, grouped by feature area, so they read as a feature-by-feature history, not as a
+  chronological log, and a few intermediate commits do not build on their own. Later changes are committed one iteration
+  at a time. The real chronology, including the dead ends, is in [AI_LOG.md](AI_LOG.md).
+
+### With one more week
+
+In order of value for the Head of Marketing:
+
+1. **Real backend for the marketplace** following the plan above: orders and a payment gateway with a verified webhook,
+   transactional quota reservation, license delivery by email. This is the biggest gap between demo and product.
+2. **Instant publishing.** Today an edit waits for a rebuild. A small Worker could read Sanity at request time for the
+   landing page (cached for seconds) so a banner change shows immediately, and Sanity's live preview could show unpublished
+   drafts on the real site.
+3. **Marketing controls in the CMS:** reorder and hide landing sections, schedule promos (start and end dates, with a
+   scheduled rebuild), and the Malaysia/Singapore locales and currencies described above.
+4. **Shareable catalog:** sorting, search and category in the URL (`nuqs` is already a dependency), and monthly/yearly plans
+   with a comparison table.
+5. **Vouchers** with minimum spend and usage quota, with tests next to the quota ones, validated again on the server.
+6. **Quality:** real product screenshots, 44 px tap targets everywhere, Playwright end-to-end tests of the purchase flow,
+   an accessibility pass, a stricter shared rate limit (Cloudflare rules or KV), and error monitoring on the Functions.
