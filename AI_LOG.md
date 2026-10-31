@@ -90,6 +90,18 @@ by reading the generated HTML of ten page types for an absolute `og:image`, and 
 WhatsApp skips large images (the first render was 409 KB). The lesson, in both cases, was to measure the output instead of
 trusting that a successful build means the result is right.
 
+**8. It reported "performance 100" from the wrong address, and the first test of the fix was misleading.** The Lighthouse
+score in the README came from `kodeva.pages.dev`. When I mentioned the site also answers on `kodeva.devanada.com`, the AI
+measured that address too: **90 to 91** on three runs against 100, with LCP 2.8 s against 0.9 s, for byte-identical pages.
+Comparing the requests of the two runs found the real cause, which the single good number had hidden: the landing page
+downloaded about 0.9 MB of Cloudflare Turnstile scripts at load for a form far below the fold, on both hosts, plus Cloudflare's
+analytics beacon on the custom domain. Fixed by mounting the captcha only when the form is near the viewport or focused. The
+first browser test of the fix said it did not work (no request after scrolling), but the browser pane used for testing never
+fires `IntersectionObserver` callbacks at all, even for a probe at the top of the screen. Re-tested in a real rendering
+headless Chrome over the DevTools protocol, which showed 0 requests at load and while far away, and the script loading when
+the form came into view. The new unit tests cover the three cases. The score on the custom domain after the change still has
+to be measured after the deploy; the README says so instead of claiming it.
+
 ## 4. The part where the AI helped most, and the edge cases I tested
 
 **The promo quota across plans** (`src/utils/services/cart`). The brief says the quota limit applies to the total licenses of

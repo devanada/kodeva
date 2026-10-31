@@ -14,7 +14,9 @@ import { Testimonials } from './components/landing/testimonials';
 export const metadata: Metadata = {
   title: 'Promo Akhir Tahun',
   description: 'Aplikasi kasir dan HR & payroll untuk UMKM dengan diskon akhir tahun.',
-  openGraph: { title: 'Promo Akhir Tahun Kodeva', type: 'website', images: [DEFAULT_OG_IMAGE] },
+  // the site answers on two hostnames (the custom domain and *.pages.dev); this tells Google which one counts
+  alternates: { canonical: '/' },
+  openGraph: { title: 'Promo Akhir Tahun Kodeva', url: '/', type: 'website', images: [DEFAULT_OG_IMAGE] },
 };
 
 // Static page: the CMS content is read once at build time and the HTML is served as a plain file.

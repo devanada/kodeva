@@ -15,6 +15,7 @@ import { Spinner } from '@/components/ui/spinner';
 
 import { createLead } from '@/utils/apis/v2/leads';
 import { LeadInput, LeadPayload, LeadSchema } from '@/utils/apis/v2/leads/types';
+import { useNearViewport } from '@/utils/hooks/use-near-viewport';
 import { getUtm } from '@/utils/tracking/utm';
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
@@ -22,6 +23,9 @@ const captchaReady = TURNSTILE_SITE_KEY !== '';
 
 function LeadForm() {
   const turnstileRef = useRef<TurnstileInstance>(null);
+  // The Turnstile widget costs about 0.9 MB of scripts. The form is far below the fold, so it is only mounted when the
+  // form is about to be seen (or a field is focused), not for every visitor who lands from Instagram or TikTok.
+  const { ref: formRef, near: captchaActive, activate: activateCaptcha } = useNearViewport<HTMLFormElement>();
   const form = useForm<LeadInput, unknown, LeadPayload>({
     resolver: zodResolver(LeadSchema),
     defaultValues: { name: '', email: '', whatsapp: '', website: '', turnstileToken: '' },
@@ -48,7 +52,13 @@ function LeadForm() {
   };
 
   return (
-    <form onSubmit={(event) => void form.handleSubmit(onSubmit)(event)} noValidate className='flex flex-col gap-4'>
+    <form
+      ref={formRef}
+      onFocusCapture={activateCaptcha}
+      onSubmit={(event) => void form.handleSubmit(onSubmit)(event)}
+      noValidate
+      className='flex flex-col gap-4'
+    >
       <InputFormField control={form.control} name='name' id='lead-name' label='Nama' autoComplete='name' />
       <InputFormField
         control={form.control}
@@ -81,13 +91,18 @@ function LeadForm() {
         />
       </div>
       {captchaReady ? (
-        <CaptchaFormField
-          control={form.control}
-          name='turnstileToken'
-          id='lead-captcha'
-          siteKey={TURNSTILE_SITE_KEY}
-          ref={turnstileRef}
-        />
+        captchaActive ? (
+          <CaptchaFormField
+            control={form.control}
+            name='turnstileToken'
+            id='lead-captcha'
+            siteKey={TURNSTILE_SITE_KEY}
+            ref={turnstileRef}
+          />
+        ) : (
+          // reserves the widget's height (65px) so nothing jumps when it mounts
+          <div aria-hidden className='min-h-[65px]' />
+        )
       ) : (
         // the key is inlined at build time; without it no token can ever be produced, so say so instead of letting
         // the visitor hit a confusing "complete the verification" error on a widget that is not there

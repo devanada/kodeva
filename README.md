@@ -3,7 +3,8 @@
 Landing campaign, blog, and mini marketplace for the fictional Kodeva brand (technical skill test). Runs entirely on the
 Cloudflare **Free** plan plus Sanity's free plan.
 
-- **Live site:** https://kodeva.pages.dev
+- **Live site:** https://kodeva.devanada.com (also reachable at https://kodeva.pages.dev, the same build). The custom
+  domain is the canonical address: canonical tags, Open Graph URLs and the sitemap all point to it.
 - **CMS (Sanity Studio):** [ISI: link to your hosted Studio]. The demo editor account is in the submission email.
 - **AI usage log:** [AI_LOG.md](AI_LOG.md)
 
@@ -178,7 +179,13 @@ finishes. No manual deploy is needed.
   send them, so attribution survives navigation.
 - **Lead form:** zod schema shared by the form and the Function, honeypot, Cloudflare Turnstile, and an in-memory rate limit
   (per Worker instance; use Cloudflare's rate limiting rules or KV for something stricter). Leads are created as `lead`
-  documents in Sanity, so marketing reads them in the Studio, with the UTM that brought them.
+  documents in Sanity, so marketing reads them in the Studio, with the UTM that brought them. The Turnstile widget is
+  about 0.9 MB of scripts, so it is mounted only when the form is within 600 px of the viewport or a field is focused
+  (`useNearViewport`); a visitor who never scrolls to the form never downloads it, and a placeholder reserves its 65 px so
+  nothing jumps.
+- **Two hostnames:** the site answers on `kodeva.devanada.com` and `kodeva.pages.dev` with the same files. Every page's
+  canonical URL (resolved against `NEXT_PUBLIC_SITE_URL`) points to the custom domain, so Google treats `pages.dev` as an
+  alias. If you want the alias to stop answering, a Pages `_redirects` rule can 301 it to the custom domain.
 - **SEO:** a static `sitemap.xml` (landing, products, articles), per-page metadata and canonical URLs, Open Graph tags,
   JSON-LD for articles and products. `NEXT_PUBLIC_SITE_URL` is normalized (a trailing slash does not double up in the
   sitemap).
@@ -327,8 +334,8 @@ A direct-upload project cannot be connected to git later, and it has no deploy h
 - **C. Marketing:** Lighthouse mobile 100 on the deployed landing page; `view_item`, `add_to_cart`, `begin_checkout` and
   CTA events in `dataLayer`; UTM kept across pages and sent with the lead and the order payload; sitemap, metadata, JSON-LD,
   and a share image on every page.
-- **Tests:** 43 unit tests (quota, pricing, cart sanitizing, server-side validation, lead schema, UTM, image loaders, site URL, and the
-  lead form's two captcha states).
+- **Tests:** 45 unit tests (quota, pricing, cart sanitizing, server-side validation, lead schema, UTM, image loaders, site URL, and the
+  lead form's captcha states, including when it loads).
 
 ### Lighthouse (mobile, performance, landing page, deployed)
 
@@ -340,9 +347,20 @@ Lighthouse 13 (mobile emulation, simulated throttling). The full report is in
 landing page currently has no hero image; a large CMS image would be the first thing to watch (the Sanity image loader
 requests a resized, modern-format version, and the hero image is marked `priority`).
 
+**The custom domain scored lower, and why.** The same build measured on `https://kodeva.devanada.com/` (three runs, before
+the change below) scored **90 to 91**, with FCP and LCP of 2.7 to 2.8 s, against 100 and 0.9 s on `pages.dev`. Comparing the
+requests showed the cause: on both hosts the landing page downloaded about **0.9 MB from Cloudflare Turnstile** (13
+requests, nearly two thirds of the page's transfer) for a form that sits far below the fold; the custom domain also loads
+Cloudflare's Web Analytics beacon (a zone setting, not part of this code), which was enough to push the simulated slow-phone
+timing over the edge. Both scores pass the 80 target, but with 80 percent of traffic on phones the captcha cost was real.
+The fix is the lazy-loaded captcha described under "Lead form": on a phone-sized headless Chrome the landing page now makes
+0 requests to Cloudflare's challenge servers at load and while the form is still thousands of pixels away, and loads it when
+the form comes into view. **The scores above predate that change**: they should be re-measured on the custom domain after it
+is deployed.
+
 ### Verified
 
-- **Automated:** the 43 tests, typecheck and lint, and a production build against a local mock of the Sanity API (7
+- **Automated:** the 45 tests, typecheck and lint, and a production build against a local mock of the Sanity API (7
   articles, blog page 2, sitemap with 16 URLs, 404 page), and the same build with no CMS configured.
 - **On workerd (`wrangler pages dev`):** every route returns the right status; the lead Function validates, applies the
   honeypot and writes a correctly shaped `lead` document; the order Function enforces the quota across plans and returns
@@ -355,6 +373,10 @@ requests a resized, modern-format version, and the hero image is marked `priorit
   physical phone.
 - **Share previews:** on a production build, the built HTML of the landing page, catalog, product pages, blog list, articles
   with and without a cover, cart and checkout all carry an absolute `og:image`.
+- **Lazy captcha:** in a rendering headless Chrome at 375 px (driven over the DevTools protocol), the landing page made 0
+  requests to `challenges.cloudflare.com` at load and after a 400 px scroll with the form still 2,272 px below; scrolling
+  the form into view loaded the Turnstile script and replaced the placeholder. The unit tests cover the same three cases
+  (not near, near, focused). The landing page's canonical and `og:url` resolve to the custom domain.
 
 ### Not done, and known limitations
 
