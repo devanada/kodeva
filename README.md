@@ -5,13 +5,12 @@ Cloudflare **Free** plan plus Sanity's free plan.
 
 - **Live site:** https://kodeva.devanada.com (also reachable at https://kodeva.pages.dev, the same build). The custom
   domain is the canonical address: canonical tags, Open Graph URLs and the sitemap all point to it.
-- **CMS (Sanity Studio):** [ISI: link to your hosted Studio]. The demo editor account is in the submission email.
+- **CMS (Sanity Studio):** https://devanada.sanity.studio/. The demo editor account is in the submission email.
 - **AI usage log:** [AI_LOG.md](AI_LOG.md)
 
 ## Working time
 
-[ISI: actual time spent, in hours, and roughly how it split between the landing/blog, the marketplace, the marketing
-requirements and the deployment. The brief asks for the real number, not the 6 to 8 hour estimate.]
+Started working on the project at 12:30 PM on Oct 30, 2026 by submitting the requirements to Claude Code, vibe coding but with my personal code and structure standart to make sure that the project is align with my coding style. And finished the project at 02:30 AM on Nov 1, 2026.
 
 The work took more than one architecture: it started as Payload CMS on Cloudflare Workers and was rebuilt as a static site
 with Sanity when that proved impossible on the Workers Free plan (see "Why this architecture"). That detour is part of the
@@ -93,18 +92,18 @@ design leaves room for it:
 
 ## Libraries and why
 
-| Library | Why |
-| --- | --- |
-| Next.js 16 + TypeScript (strict) | Static export, file-based routing, per-page metadata for SEO and share previews |
-| Sanity + `@sanity/client`, `@portabletext/react` | Hosted CMS with a ready Studio; the client reads at build time, Portable Text renders the rich text |
-| Cloudflare Pages + Pages Functions + Wrangler | Free static hosting with unlimited asset requests, and tiny Workers for the two endpoints |
-| Tailwind CSS v4 + shadcn/ui (radix-maia) | Accessible, unstyled-by-default primitives that I own in the repo, fast to compose |
-| react-hook-form + zod | One schema validates the form in the browser and again in the Function; wrappers in `components/form-field` keep fields consistent |
-| zustand (`persist`) | Small cart store that survives refresh without a provider tree; the quota logic stays in pure functions |
-| Cloudflare Turnstile | Free, privacy-friendly captcha that pairs with the honeypot and rate limit |
-| libphonenumber-js | Real phone number validation instead of a fragile regex |
-| Vitest + Testing Library | Fast unit tests for quota, pricing, validation and the form states |
-| `create-next-app` + shadcn init | Starting point only; the form-field wrappers and project conventions come from my own earlier project |
+| Library                                          | Why                                                                                                                                |
+| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Next.js 16 + TypeScript (strict)                 | Static export, file-based routing, per-page metadata for SEO and share previews                                                    |
+| Sanity + `@sanity/client`, `@portabletext/react` | Hosted CMS with a ready Studio; the client reads at build time, Portable Text renders the rich text                                |
+| Cloudflare Pages + Pages Functions + Wrangler    | Free static hosting with unlimited asset requests, and tiny Workers for the two endpoints                                          |
+| Tailwind CSS v4 + shadcn/ui (radix-maia)         | Accessible, unstyled-by-default primitives that I own in the repo, fast to compose                                                 |
+| react-hook-form + zod                            | One schema validates the form in the browser and again in the Function; wrappers in `components/form-field` keep fields consistent |
+| zustand (`persist`)                              | Small cart store that survives refresh without a provider tree; the quota logic stays in pure functions                            |
+| Cloudflare Turnstile                             | Free, privacy-friendly captcha that pairs with the honeypot and rate limit                                                         |
+| libphonenumber-js                                | Real phone number validation instead of a fragile regex                                                                            |
+| Vitest + Testing Library                         | Fast unit tests for quota, pricing, validation and the form states                                                                 |
+| `create-next-app` + shadcn init                  | Starting point only; the form-field wrappers and project conventions come from my own earlier project                              |
 
 I did not use TanStack Query or MSW: with static data and two POST endpoints there is nothing to cache or intercept, and
 the "mock API fails" case is covered by the checkout's network error state and the Function's 402 and 500 responses.
@@ -131,15 +130,15 @@ npm run preview                  # static files + Functions on http://localhost:
 
 ## Scripts
 
-| Script                       | Purpose                                                                       |
-| ---------------------------- | ----------------------------------------------------------------------------- |
-| `npm run build`              | Static export to `out/` (fetches CMS content at build time)                   |
-| `npm run preview`            | Serve `out/` with the Functions on workerd (`wrangler pages dev`)             |
-| `npm run deploy`             | Pre-flight check, build, and `wrangler pages deploy` (manual deploys)         |
-| `npm run seed`               | Write demo content to Sanity (idempotent, needs `SANITY_WRITE_TOKEN`)         |
-| `npm run mock:sanity`        | Local mock of the Sanity API for tests                                        |
-| `npm run studio:dev/deploy`  | Run or publish the Sanity Studio (`studio/`)                                  |
-| `npm run typescript/lint/test` | Typecheck, lint, Vitest                                                     |
+| Script                         | Purpose                                                               |
+| ------------------------------ | --------------------------------------------------------------------- |
+| `npm run build`                | Static export to `out/` (fetches CMS content at build time)           |
+| `npm run preview`              | Serve `out/` with the Functions on workerd (`wrangler pages dev`)     |
+| `npm run deploy`               | Pre-flight check, build, and `wrangler pages deploy` (manual deploys) |
+| `npm run seed`                 | Write demo content to Sanity (idempotent, needs `SANITY_WRITE_TOKEN`) |
+| `npm run mock:sanity`          | Local mock of the Sanity API for tests                                |
+| `npm run studio:dev/deploy`    | Run or publish the Sanity Studio (`studio/`)                          |
+| `npm run typescript/lint/test` | Typecheck, lint, Vitest                                               |
 
 ## Structure
 
@@ -207,13 +206,13 @@ I did exactly that on the deployed site (https://kodeva.pages.dev/?utm_source=in
 clicking through with client-side navigation so the page was never reloaded: hero CTA, open Kodeva Kasir, switch plan four
 times, add 2 licenses of the Pro plan, open the cart, go to checkout. Result:
 
-| Step | Event | Count | Payload (shortened) |
-| --- | --- | --- | --- |
-| Click the hero CTA | `cta_click` | 1 | `cta_id: hero_catalog`, `cta_destination: /products`, campaign `instagram/social/akhir-tahun` |
-| Open the product page | `view_item` | 1 | `currency: IDR`, `value: 69300`, item `kodeva-kasir`, variant `basic`, price 69300 |
-| Switch plan Pro, Business, Basic, Pro | `view_item` | still 1 | no new event: re-renders do not resend it |
-| Add 2 licenses (Pro) | `add_to_cart` | 1 | `value: 278600`, item `kodeva-kasir`, variant `pro`, quantity 2, price 139300 |
-| Open checkout | `begin_checkout` | 1 | `value: 278600`, the same cart item |
+| Step                                  | Event            | Count   | Payload (shortened)                                                                           |
+| ------------------------------------- | ---------------- | ------- | --------------------------------------------------------------------------------------------- |
+| Click the hero CTA                    | `cta_click`      | 1       | `cta_id: hero_catalog`, `cta_destination: /products`, campaign `instagram/social/akhir-tahun` |
+| Open the product page                 | `view_item`      | 1       | `currency: IDR`, `value: 69300`, item `kodeva-kasir`, variant `basic`, price 69300            |
+| Switch plan Pro, Business, Basic, Pro | `view_item`      | still 1 | no new event: re-renders do not resend it                                                     |
+| Add 2 licenses (Pro)                  | `add_to_cart`    | 1       | `value: 278600`, item `kodeva-kasir`, variant `pro`, quantity 2, price 139300                 |
+| Open checkout                         | `begin_checkout` | 1       | `value: 278600`, the same cart item                                                           |
 
 Every event also carries `campaign_source`, `campaign_medium` and `campaign_name` from the stored UTM. The guards that
 prevent duplicates: `view_item` and `begin_checkout` are sent from an effect guarded by a ref, and `add_to_cart` and
@@ -245,7 +244,7 @@ Frontend-only; the order endpoint is a mock.
   gateway calls the webhook, which verifies the signature, is idempotent on the gateway event id, and moves the order
   `pending -> paid | failed | expired`. The redirect page only reads order status; it never marks anything paid.
 - **Accurate quota:** reserve licenses in a transaction when the order is created (`UPDATE promo SET remaining = remaining - n
-  WHERE remaining >= n`), with a reservation expiry; release on failure or expiry and consume on `paid`. The per-product pool
+WHERE remaining >= n`), with a reservation expiry; release on failure or expiry and consume on `paid`. The per-product pool
   mirrors the rule already implemented in `cart/index.ts`. (On Cloudflare this is a D1 transaction or a Durable Object per
   product, since D1 alone has no row locks.)
 - **License delivery:** after the verified `paid` webhook, generate the license keys in the same transaction as the status
@@ -269,6 +268,7 @@ Everything below is free. Do the steps in order; each command is meant to be run
    `.env.production` (and the Pages build environment) for the site build, `SANITY_PROJECT_ID` in `wrangler.jsonc` for the lead
    Function, and `SANITY_STUDIO_PROJECT_ID` in `studio/.env` for the Studio. The Studio's name differs because Sanity only
    exposes `SANITY_STUDIO_*` variables to the Studio bundle. `npm run deploy` checks that the first two match.
+
 5. Optional demo content: `SANITY_PROJECT_ID=... SANITY_WRITE_TOKEN=... npm run seed`.
 
 **2. Configure the repo**
