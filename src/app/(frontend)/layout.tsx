@@ -3,6 +3,7 @@ import { Figtree, Geist, Geist_Mono } from 'next/font/google';
 
 import { cn } from '@/lib/utils';
 
+import { DEFAULT_OG_IMAGE, SITE_URL } from '@/utils/constants/site';
 import { Providers } from '@/utils/providers';
 import { TrackingProvider } from '@/utils/tracking/tracking-provider';
 
@@ -23,9 +24,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+  metadataBase: new URL(SITE_URL),
   title: { default: 'Kodeva', template: '%s | Kodeva' },
   description: 'Software kasir dan HR & payroll untuk UMKM.',
+  openGraph: { siteName: 'Kodeva', locale: 'id_ID', type: 'website', images: [DEFAULT_OG_IMAGE] },
+  twitter: { card: 'summary_large_image', images: [DEFAULT_OG_IMAGE.url] },
 };
 
 function RootLayout({ children }: LayoutProps<'/'>) {

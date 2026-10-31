@@ -74,6 +74,22 @@ the token appears nowhere in the built site, and that an anonymous query to a pr
 result (HTTP 200) while a wrong token returns 401. That second fact is why the build now also refuses to run without the
 token: otherwise a missing token would publish an empty blog without any error.
 
+**6. It claimed a measurement it had not made.** After the first mobile check the AI wrote in the README that the primary
+buttons and the quantity steppers were 44 px. Only the steppers were. The first pass flagged anything under 40 px, so 40 px
+buttons passed unnoticed. Found when the same check was rerun with a strict 44 px threshold, after the other fixes: the large
+buttons, the header cart icon and the text inputs were 40, 40 and 36 px. Fixed by making the large button size 44 px (the site
+uses it for every primary action) and the input element 44 px, and pagination links 44 px. Verified by measuring again on six
+pages in a 375 px browser (nothing under 44 px) and by a hit test showing that tapping the middle of a landing card reaches
+its link.
+
+**7. The share-preview fix looked done and was not.** The AI added a share image using Next.js's file convention and a build
+that succeeded. Checking the built HTML page by page showed most pages (the product pages, and articles without a cover) had
+no `og:image` at all: a page that defines its own `openGraph` replaces the parent's including the image, and moving the file
+next to the layout only fixed some pages. Switched to one image at a fixed URL that every such page sets explicitly. Verified
+by reading the generated HTML of ten page types for an absolute `og:image`, and by keeping the file at 40 KB because
+WhatsApp skips large images (the first render was 409 KB). The lesson, in both cases, was to measure the output instead of
+trusting that a successful build means the result is right.
+
 ## 4. The part where the AI helped most, and the edge cases I tested
 
 **The promo quota across plans** (`src/utils/services/cart`). The brief says the quota limit applies to the total licenses of

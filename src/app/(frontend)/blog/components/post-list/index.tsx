@@ -50,7 +50,7 @@ async function PostList({ page }: PostListProps) {
           <PaginationContent>
             {page > 1 && (
               <PaginationItem>
-                <PaginationPrevious href={pageHref(page - 1)} />
+                <PaginationPrevious href={pageHref(page - 1)} className='min-h-11 min-w-11' />
               </PaginationItem>
             )}
             <PaginationItem className='text-muted-foreground px-3 text-sm'>
@@ -58,7 +58,7 @@ async function PostList({ page }: PostListProps) {
             </PaginationItem>
             {page < result.totalPages && (
               <PaginationItem>
-                <PaginationNext href={pageHref(page + 1)} />
+                <PaginationNext href={pageHref(page + 1)} className='min-h-11 min-w-11' />
               </PaginationItem>
             )}
           </PaginationContent>

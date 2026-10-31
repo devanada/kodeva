@@ -3,6 +3,8 @@
 import React from 'react';
 import { Control, Controller, FieldValues, Path } from 'react-hook-form';
 
+import { cn } from '@/lib/utils';
+
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field';
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from '@/components/ui/input-group';
 
@@ -48,7 +50,8 @@ export const InputFormField = <T extends FieldValues>({
               {additionalLabel}
             </div>
           )}
-          <InputGroup>
+          {/* 44px tall: comfortable to tap on a phone */}
+          <InputGroup className='h-11'>
             {preffix && (
               <InputGroupAddon align='inline-start' className='has-[>button]:-ml-3'>
                 {typeof preffix === 'string' ? <InputGroupText>{preffix}</InputGroupText> : preffix}
@@ -56,6 +59,7 @@ export const InputFormField = <T extends FieldValues>({
             )}
             <InputGroupInput
               {...props}
+              className={cn('h-11', props.className)}
               type={valueAsNumber ? (props.type ?? 'number') : props.type}
               step={valueAsNumber ? (props.step ?? 'any') : props.step}
               id={id}

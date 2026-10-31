@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 import { CATEGORY_LABELS } from '@/utils/constants/products';
 import { ROUTES } from '@/utils/constants/routes';
+import { DEFAULT_OG_IMAGE } from '@/utils/constants/site';
 import { getProductBySlug, getProducts } from '@/utils/services/products';
 
 import { FeatureScreenshots } from './components/feature-screenshots';
@@ -32,7 +33,12 @@ export async function generateMetadata({ params }: PageProps<'/products/[slug]'>
     title: product.name,
     description: product.description,
     alternates: { canonical: `${ROUTES.products}/${product.slug}` },
-    openGraph: { type: 'website', title: product.name, description: product.description },
+    openGraph: {
+      type: 'website',
+      title: product.name,
+      description: product.description,
+      images: [DEFAULT_OG_IMAGE],
+    },
   };
 }
 

@@ -54,7 +54,7 @@ export const SelectFormField = <
           }}
           disabled={props.disabled}
         >
-          <SelectTrigger id={props.id} className='w-full' aria-invalid={fieldState.invalid}>
+          <SelectTrigger id={props.id} className='w-full data-[size=default]:h-11' aria-invalid={fieldState.invalid}>
             <SelectValue placeholder={props['aria-placeholder']} />
           </SelectTrigger>
           <SelectContent>

@@ -71,7 +71,10 @@ function CartView() {
                 <CardContent className='flex flex-col gap-3'>
                   <div className='flex items-start justify-between gap-3'>
                     <div>
-                      <Link href={`${ROUTES.products}/${product.slug}`} className='font-semibold hover:underline'>
+                      <Link
+                        href={`${ROUTES.products}/${product.slug}`}
+                        className='inline-flex min-h-11 items-center font-semibold hover:underline'
+                      >
                         {product.name}
                       </Link>
                       <p className='text-muted-foreground text-sm'>Paket {planName}</p>

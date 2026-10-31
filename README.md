@@ -180,7 +180,12 @@ finishes. No manual deploy is needed.
   (per Worker instance; use Cloudflare's rate limiting rules or KV for something stricter). Leads are created as `lead`
   documents in Sanity, so marketing reads them in the Studio, with the UTM that brought them.
 - **SEO:** a static `sitemap.xml` (landing, products, articles), per-page metadata and canonical URLs, Open Graph tags,
-  JSON-LD for articles and products.
+  JSON-LD for articles and products. `NEXT_PUBLIC_SITE_URL` is normalized (a trailing slash does not double up in the
+  sitemap).
+- **Share previews (WhatsApp, Facebook, LinkedIn, X):** every page has an absolute `og:image` and a `twitter:image`:
+  `public/og-default.png` (1200x630, 40 KB, small because WhatsApp skips large images), or, for an article with a cover,
+  the cover cropped to 1200x630 by Sanity's image CDN. A page that defines its own `openGraph` replaces the parent's
+  including images, so each such page sets the default explicitly (`DEFAULT_OG_IMAGE` in `src/utils/constants/site.ts`).
 
 ### Proof that the events fire
 
@@ -320,8 +325,9 @@ A direct-upload project cannot be connected to git later, and it has no deploy h
   the plans of one product; checkout with validation and a success/failure simulation; loading, error, empty and
   not-found states; cart button in the header on every page.
 - **C. Marketing:** Lighthouse mobile 100 on the deployed landing page; `view_item`, `add_to_cart`, `begin_checkout` and
-  CTA events in `dataLayer`; UTM kept across pages and sent with the lead and the order payload; sitemap, metadata, JSON-LD.
-- **Tests:** 36 unit tests (quota, pricing, cart sanitizing, server-side validation, lead schema, UTM, image loader, and the
+  CTA events in `dataLayer`; UTM kept across pages and sent with the lead and the order payload; sitemap, metadata, JSON-LD,
+  and a share image on every page.
+- **Tests:** 43 unit tests (quota, pricing, cart sanitizing, server-side validation, lead schema, UTM, image loaders, site URL, and the
   lead form's two captcha states).
 
 ### Lighthouse (mobile, performance, landing page, deployed)
@@ -336,14 +342,19 @@ requests a resized, modern-format version, and the hero image is marked `priorit
 
 ### Verified
 
-- **Automated:** the 36 tests, typecheck and lint, and a production build against a local mock of the Sanity API (7
+- **Automated:** the 43 tests, typecheck and lint, and a production build against a local mock of the Sanity API (7
   articles, blog page 2, sitemap with 16 URLs, 404 page), and the same build with no CMS configured.
 - **On workerd (`wrangler pages dev`):** every route returns the right status; the lead Function validates, applies the
   honeypot and writes a correctly shaped `lead` document; the order Function enforces the quota across plans and returns
   paid and declined.
 - **On the deployed site:** landing page and articles come from the real Sanity project, an unknown product is a real 404,
   the Turnstile site key is built in, Lighthouse as above, and the tracking events as in "Proof that the events fire".
-- **Mobile layout (375 px, deployed site):** no horizontal overflow on `/`, `/products`, a product page, `/cart` and `/blog`.
+- **Mobile layout (375 px):** on a production build, no horizontal overflow and no interactive element smaller than 44 px
+  on `/`, `/products`, a product page, `/cart` (with an item), `/checkout` and `/blog`. Cards use a stretched link, so the
+  whole card is the tap target (hit-tested at the middle of a landing card). Measured in an emulated browser, not on a
+  physical phone.
+- **Share previews:** on a production build, the built HTML of the landing page, catalog, product pages, blog list, articles
+  with and without a cover, cart and checkout all carry an absolute `og:image`.
 
 ### Not done, and known limitations
 
@@ -351,9 +362,8 @@ requests a resized, modern-format version, and the hero image is marked `priorit
   monthly/yearly durations and a plan comparison table, scheduled promos, vouchers (so no voucher tests), and a draft
   preview on the site itself.
 - **Product "screenshots"** on the detail page are gradient placeholders, not real images.
-- **Tap targets:** primary buttons and the quantity steppers are 44 px, but a few secondary targets are smaller on a phone:
-  the "Lihat detail" links on the landing cards (about 20 px tall), the header logo (28 px), the product-name link in the
-  cart, and the form inputs (36 px). Measured, not yet fixed.
+- **No physical-device test:** the phone layout was checked in an emulated 375 px browser and by Lighthouse's mobile run,
+  not on real devices or in the real Instagram and TikTok in-app browsers.
 - **Freshness:** an edit appears after a rebuild (about 1 to 2 minutes), not instantly.
 - **Rate limit:** the lead and order Functions limit requests per Worker instance only.
 - **Functions' CPU time** on the Free plan was not measured on Cloudflare; they are small (one parse, one or two `fetch`
@@ -378,5 +388,5 @@ In order of value for the Head of Marketing:
 4. **Shareable catalog:** sorting, search and category in the URL (`nuqs` is already a dependency), and monthly/yearly plans
    with a comparison table.
 5. **Vouchers** with minimum spend and usage quota, with tests next to the quota ones, validated again on the server.
-6. **Quality:** real product screenshots, 44 px tap targets everywhere, Playwright end-to-end tests of the purchase flow,
-   an accessibility pass, a stricter shared rate limit (Cloudflare rules or KV), and error monitoring on the Functions.
+6. **Quality:** real product screenshots, testing on real phones and the in-app browsers, Playwright end-to-end tests of
+   the purchase flow, an accessibility pass, a stricter shared rate limit (Cloudflare rules or KV), and error monitoring on the Functions.

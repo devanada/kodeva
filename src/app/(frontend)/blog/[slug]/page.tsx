@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { ROUTES } from '@/utils/constants/routes';
+import { DEFAULT_OG_IMAGE } from '@/utils/constants/site';
+import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH, ogImageUrl } from '@/utils/functions/og-image';
 import { getAllPostSlugs, getPostBySlug } from '@/utils/services/cms';
 import { getProductsBySlugs } from '@/utils/services/products';
 
@@ -39,7 +41,14 @@ export async function generateMetadata({ params }: PageProps<'/blog/[slug]'>): P
       title: post.title,
       description: post.excerpt ?? undefined,
       publishedTime: post.publishedAt ?? undefined,
-      images: post.cover?.url ? [{ url: post.cover.url, alt: post.cover.alt }] : undefined,
+      // without a cover the site-wide share image is used
+      images: post.cover?.url
+        ? [{ url: ogImageUrl(post.cover.url), width: OG_IMAGE_WIDTH, height: OG_IMAGE_HEIGHT, alt: post.cover.alt }]
+        : [DEFAULT_OG_IMAGE],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      images: [post.cover?.url ? ogImageUrl(post.cover.url) : DEFAULT_OG_IMAGE.url],
     },
   };
 }

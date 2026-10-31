@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { LANDING_FALLBACK } from '@/utils/constants/landing-fallback';
+import { DEFAULT_OG_IMAGE } from '@/utils/constants/site';
 import { getLandingPage } from '@/utils/services/cms';
 import { getProductsBySlugs } from '@/utils/services/products';
 
@@ -13,7 +14,7 @@ import { Testimonials } from './components/landing/testimonials';
 export const metadata: Metadata = {
   title: 'Promo Akhir Tahun',
   description: 'Aplikasi kasir dan HR & payroll untuk UMKM dengan diskon akhir tahun.',
-  openGraph: { title: 'Promo Akhir Tahun Kodeva', type: 'website' },
+  openGraph: { title: 'Promo Akhir Tahun Kodeva', type: 'website', images: [DEFAULT_OG_IMAGE] },
 };
 
 // Static page: the CMS content is read once at build time and the HTML is served as a plain file.

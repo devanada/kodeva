@@ -25,7 +25,7 @@ function FeaturedProducts({ products }: FeaturedProductsProps) {
           const startingPlan = product.plans[0];
 
           return (
-            <Card key={product.slug}>
+            <Card key={product.slug} className='relative'>
               <CardHeader>
                 <CardTitle>{product.name}</CardTitle>
                 <CardDescription>{product.tagline}</CardDescription>
@@ -48,7 +48,11 @@ function FeaturedProducts({ products }: FeaturedProductsProps) {
                 </p>
               </CardContent>
               <CardFooter>
-                <Link href={`${ROUTES.products}/${product.slug}`} className='text-primary text-sm font-medium'>
+                {/* the pseudo-element stretches the link over the whole card, so the tap target is the card */}
+                <Link
+                  href={`${ROUTES.products}/${product.slug}`}
+                  className='text-primary text-sm font-medium after:absolute after:inset-0'
+                >
                   Lihat detail
                 </Link>
               </CardFooter>
